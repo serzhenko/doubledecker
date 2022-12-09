@@ -1,0 +1,4 @@
+python-decouple
+python-telegram-bot
+optipng
+pymupdf
