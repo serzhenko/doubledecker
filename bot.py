@@ -14,26 +14,25 @@ def pdf2png(source, destdir):
         pix.save(f"{destdir}/page-{page.number}.png")
 
 
+def process_document(update, context):
+    update.message.reply_text('Поймал документ')
+
+
 def main():
     # Запускаем логгирование
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
     )
     logger = logging.getLogger(__name__)
-    TOKEN = config('telegramToken', default='')
+    token = config('telegramToken', default='')
+    updater = Updater(token)
+    dp = updater.dispatcher
 
-    def process_document(update, context):
-        update.message.reply_text('Поймал документ')
+    text_handler = MessageHandler(Filters.document, process_document)
+    dp.add_handler(text_handler)
 
-    def main():
-        updater = Updater(TOKEN)
-        dp = updater.dispatcher
-
-        text_handler = MessageHandler(Filters.document, process_document)
-        dp.add_handler(text_handler)
-
-        updater.start_polling()
-        updater.idle()
+    updater.start_polling()
+    updater.idle()
 
     if __name__ == '__main__':
         main()
