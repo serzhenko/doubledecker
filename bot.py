@@ -1,22 +1,43 @@
-import fitz
 import logging
-from telegram.ext import Updater, MessageHandler, Filters
+
+import filetype
+import fitz
 from decouple import config
+from telegram.ext import Updater, MessageHandler, Filters
 
 
 def pdf2png(source, destdir):
-    dpi = 150  # choose desired dpi here
-    zoom = dpi / 72  # zoom factor, standard: 72 dpi
-    magnify = fitz.Matrix(zoom, zoom)  # magnifies in x, resp. y direction
-    doc = fitz.open(source)  # open document
-    for page in doc:
-        pix = page.get_pixmap(matrix=magnify)  # render page to an image
-        pix.save(f"{destdir}/page-{page.number}.png")
+    try:
+        kind = filetype.guess(source)
+        if kind is None:
+            return False
+
+        if kind.extension != 'pdf' and kind.mime != 'application/pdf':
+            return False
+
+        dpi = 150  # choose desired dpi here
+        zoom = dpi / 72  # zoom factor, standard: 72 dpi
+        magnify = fitz.Matrix(zoom, zoom)  # magnifies in x, resp. y direction
+
+        doc = fitz.open(source, filetype='pdf')  # open document
+        for page in doc:
+            pix = page.get_pixmap(matrix=magnify)  # render page to an image
+            pix.save(f"{destdir}/page-{page.number}.png")
+        return True
+
+    except Exception as e:
+        return False
 
 
 def process_document(update, context):
     update.message.reply_text('Поймал документ')
+    update.message.reply_chat_action(action='upload_document')
+    dest_dir = config('dest_dir', default='decks') + '1/'
+    file = update.message.effective_attachment.get_file()
+    pdf = file.download(custom_path=dest_dir+'src.pdf')
+    result = pdf2png(pdf, dest_dir)
 
+    update.message.reply_text('Статус конверсии: ' + str(result))
 
 def main():
     # Запускаем логгирование
@@ -24,12 +45,11 @@ def main():
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
     )
     logger = logging.getLogger(__name__)
-    token = config('telegramToken', default='')
+    token = config('telegram_token', default='')
     updater = Updater(token)
     dp = updater.dispatcher
 
-    text_handler = MessageHandler(Filters.document, process_document)
-    dp.add_handler(text_handler)
+    dp.add_handler(MessageHandler(Filters.document, process_document))
 
     updater.start_polling()
     updater.idle()
