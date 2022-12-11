@@ -130,4 +130,6 @@ dmypy.json
 
 .idea
 
-db.sqlite
+db.sqlite*
+db.db
+decks
