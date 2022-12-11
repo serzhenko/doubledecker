@@ -2,6 +2,7 @@ import logging
 
 import filetype
 import fitz
+import os
 from decouple import config
 from telegram.ext import Updater, MessageHandler, Filters
 from smally import optipng
@@ -37,7 +38,10 @@ def pdf2png(source, destdir):
 def process_document(update, context):
     update.message.reply_text('Поймал документ')
     update.message.reply_chat_action(action='upload_document')
+
     dest_dir = config('dest_dir', default='decks') + '1/'
+    os.makedirs(dest_dir, exist_ok=True)
+
     file = update.message.effective_attachment.get_file()
     pdf = file.download(custom_path=dest_dir+'src.pdf')
     result = pdf2png(pdf, dest_dir)
