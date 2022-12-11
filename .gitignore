@@ -132,4 +132,4 @@ dmypy.json
 
 db.sqlite*
 db.db
-decks
+static/decks

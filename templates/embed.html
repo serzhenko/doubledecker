@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide show</title>
+    <link rel="stylesheet" href="/static/base.css">
+</head>
+<body>
+<div id="slideshow-container"></div>
+<script>
+  let slides = [];
+  for (i=0; i<{{ num_pages }}; i++)
+    slides.push ("page-" + i + ".png");
+
+  let slideshow = {
+    container: '#slideshow-container',
+    media: slides,
+    folder: '/static/decks/{{ id }}/',
+    autoplay: 'no',
+    endless: 'no'
+  }
+
+</script>
+<script src="/static/slideshow.js"></script>
+</body>
+</html>

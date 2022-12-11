@@ -10,10 +10,11 @@ from data_models import *
 
 
 def generate_url(deck_id):
-    return config('www_root') + 'view/' + deck_id + '/'
+    return config('www_root') + 'view/' + str(deck_id) + '/'
+
 
 def generate_embed(deck_id):
-    return '<iframe src="' + config('www_root') + 'embed/' + deck_id + '/"></iframe>'
+    return '<iframe src="' + config('www_root') + 'embed/' + str(deck_id) + '/"></iframe>'
 
 
 def pdf2png(source, dest_dir):
@@ -25,7 +26,7 @@ def pdf2png(source, dest_dir):
         if kind.extension != 'pdf' and kind.mime != 'application/pdf':
             return False, -1
 
-        dpi = 150  # choose desired dpi here
+        dpi = 96  # choose desired dpi here
         zoom = dpi / 72  # zoom factor, standard: 72 dpi
         magnify = fitz.Matrix(zoom, zoom)  # magnifies in x, resp. y direction
 
@@ -50,6 +51,7 @@ def optimize_png(dest_dir, num_pages):
     except Exception as e:
         return False
 
+
 def start(update, context):
     name = f'{update.message.chat.first_name} {update.message.chat.last_name}'
     user, created = User.get_or_create(telegram_id=update.message.chat.id,
@@ -69,7 +71,7 @@ def process_document(update, context):
     user = User.get(User.telegram_id == update.message.chat.id)
     deck = Deck.create(slides_count=-1, user_id=user)
 
-    dest_dir = config('dest_dir', default='decks') + str(deck.id) + '/'
+    dest_dir = config('decks_dir', default='decks') + str(deck.id) + '/'
     os.makedirs(dest_dir, exist_ok=True)
 
     file = update.message.effective_attachment.get_file()
@@ -82,11 +84,15 @@ def process_document(update, context):
 
     if config('optipng', default=False):
         update.message.reply_text('Оптимизируем изображения...')
+        update.message.reply_chat_action(action='upload_document')
         optimize_png(dest_dir, num_pages)
         update.message.reply_text('Оптимизация завершена!')
 
     url, embed_code = generate_url(deck.id), generate_embed(deck.id)
-    update.message.reply_text('<a href="">Ссылка для просмотра презентации</a><br><br>Код для вставки:<br>', parse_mode='html')
+    links = f'[Ссылка для просмотра презентации]({url})\n\nКод для вставки:\n```\n{embed_code}\n```'
+    # print(links)
+    update.message.reply_text(links, parse_mode='MarkdownV2')
+
 
 def main():
     logging.basicConfig(
