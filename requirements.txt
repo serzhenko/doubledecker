@@ -2,3 +2,4 @@ python-decouple
 python-telegram-bot
 pymupdf
 filetype
+peewee
