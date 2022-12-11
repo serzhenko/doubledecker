@@ -4,9 +4,11 @@ import filetype
 import fitz
 from decouple import config
 from telegram.ext import Updater, MessageHandler, Filters
+from smally import optipng
 
 
 def pdf2png(source, destdir):
+    optipng_available = config('optipng', default=False)
     try:
         kind = filetype.guess(source)
         if kind is None:
@@ -22,7 +24,10 @@ def pdf2png(source, destdir):
         doc = fitz.open(source, filetype='pdf')  # open document
         for page in doc:
             pix = page.get_pixmap(matrix=magnify)  # render page to an image
-            pix.save(f"{destdir}/page-{page.number}.png")
+            dest_filename = f"{destdir}/page-{page.number}.png"
+            pix.save(dest_filename)
+            if optipng_available:
+                optipng(dest_filename)
         return True
 
     except Exception as e:
@@ -36,7 +41,6 @@ def process_document(update, context):
     file = update.message.effective_attachment.get_file()
     pdf = file.download(custom_path=dest_dir+'src.pdf')
     result = pdf2png(pdf, dest_dir)
-
     update.message.reply_text('Статус конверсии: ' + str(result))
 
 def main():
