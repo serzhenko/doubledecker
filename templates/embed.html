@@ -1,28 +1,103 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slide show</title>
-    <link rel="stylesheet" href="/static/base.css">
-</head>
-<body>
-<div id="slideshow-container"></div>
-<script>
-  let slides = [];
-  for (i=0; i<{{ num_pages }}; i++)
-    slides.push ("page-" + i + ".png");
+    <meta charset="utf-8"/>
+    <title>{{ title }}</title>
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1"
+    />
+    <!-- Link Swiper's CSS -->
+    <link
+            rel="stylesheet"
+            href="/static/swiper-bundle.min.css"
+    />
 
-  let slideshow = {
-    container: '#slideshow-container',
-    media: slides,
-    folder: '/static/decks/{{ id }}/',
-    autoplay: 'no',
-    endless: 'no'
-  }
+    <!-- Demo styles -->
+    <style>
+      html,
+      body {
+        position: relative;
+        height: 100%;
+      }
+
+      body {
+        background: #eee;
+        font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+        font-size: 14px;
+        color: #000;
+        margin: 0;
+        padding: 0;
+      }
+
+      .swiper {
+        width: 100%;
+        height: 100%;
+      }
+
+      .swiper-slide {
+        text-align: center;
+        font-size: 18px;
+        background: #000;
+      }
+
+      .swiper-slide img {
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        -ms-transform: translate(-50%, -50%);
+        -webkit-transform: translate(-50%, -50%);
+        -moz-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        position: absolute;
+        left: 50%;
+        top: 50%;
+      }
+
+    </style>
+</head>
+
+<body>
+<!-- Swiper -->
+
+<div
+        style="--swiper-navigation-color: #fff; --swiper-pagination-color: #fff"
+        class="swiper mySwiper"
+>
+    <div class="swiper-wrapper">
+        {% for n in range(n) %}
+        <div class="swiper-slide">
+            <img
+                    data-src="https://swiperjs.com/demos/images/nature-{{ n + 1 }}.jpg"
+                    class="swiper-lazy"
+            />
+            <div class="swiper-lazy-preloader swiper-lazy-preloader-white"></div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-pagination"></div>
+</div>
+
+<!-- Swiper JS -->
+<script src="/static/swiper-bundle.min.js"></script>
+
+<!-- Initialize Swiper -->
+<script>
+      var swiper = new Swiper(".mySwiper", {
+        lazy: true,
+        pagination: {
+          el: ".swiper-pagination",
+          clickable: true,
+        },
+        navigation: {
+          nextEl: ".swiper-button-next",
+          prevEl: ".swiper-button-prev",
+        },
+      });
 
 </script>
-<script src="/static/slideshow.js"></script>
 </body>
 </html>
