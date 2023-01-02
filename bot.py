@@ -26,9 +26,9 @@ def pdf2png(source, dest_dir):
         if kind.extension != 'pdf' and kind.mime != 'application/pdf':
             return False, -1
 
-        dpi = 96  # choose desired dpi here
-        zoom = dpi / 72  # zoom factor, standard: 72 dpi
-        magnify = fitz.Matrix(zoom, zoom)  # magnifies in x, resp. y direction
+        dpi = 150
+        zoom = dpi / 72
+        magnify = fitz.Matrix(zoom, zoom)
 
         doc = fitz.open(source, filetype='pdf')  # open document
         for page in doc:
