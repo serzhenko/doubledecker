@@ -66,10 +66,10 @@
         class="swiper mySwiper"
 >
     <div class="swiper-wrapper">
-        {% for n in range(n) %}
+        {% for n in range(num_pages) %}
         <div class="swiper-slide">
             <img
-                    data-src="https://swiperjs.com/demos/images/nature-{{ n + 1 }}.jpg"
+                    data-src="/static/decks/{{ id }}/page-{{ n }}.png"
                     class="swiper-lazy"
             />
             <div class="swiper-lazy-preloader swiper-lazy-preloader-white"></div>
