@@ -2,7 +2,7 @@ import filetype
 import fitz
 import os
 from decouple import config
-from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
+from telegram.ext import Updater, MessageHandler, CommandHandler, ContextTypes, filters, Application
 import logging
 from smally import optipng
 
@@ -52,21 +52,21 @@ def optimize_png(dest_dir, num_pages):
         return False
 
 
-def start(update, context):
+async def start(update, context: ContextTypes.DEFAULT_TYPE):
     name = f'{update.message.chat.first_name} {update.message.chat.last_name}'
     user, created = User.get_or_create(telegram_id=update.message.chat.id,
                                        username=update.message.chat.username,
                                        name=name)
     if created:
-        update.message.reply_text(f"Привет, <b>{name}</b>! Приятно познакомиться.", parse_mode='html')
-        update.message.reply_text("Отправляй мне PDF-файлы, чтобы получить код для встраивания на сайт.")
+        await update.message.reply_text(f"Привет, <b>{name}</b>! Приятно познакомиться.", parse_mode='html')
+        await update.message.reply_text("Отправляй мне PDF-файлы, чтобы получить код для встраивания на сайт.")
     else:
-        update.message.reply_text('Готов к работе! Жду PDF-ок.')
+        await update.message.reply_text('Готов к работе! Жду PDF-ок.')
 
 
-def process_document(update, context):
-    update.message.reply_text('Поймал документ. Начинаю обработку...')
-    update.message.reply_chat_action(action='upload_document')
+async def process_document(update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text('Поймал документ. Начинаю обработку...')
+    await update.message.reply_chat_action(action='upload_document')
 
     user = User.get(User.telegram_id == update.message.chat.id)
     deck = Deck.create(slides_count=-1, user_id=user)
@@ -74,24 +74,24 @@ def process_document(update, context):
     dest_dir = config('decks_dir', default='decks') + str(deck.id) + '/'
     os.makedirs(dest_dir, exist_ok=True)
 
-    file = update.message.effective_attachment.get_file()
-    pdf = file.download(custom_path=dest_dir + 'src.pdf')
+    file = await update.message.effective_attachment.get_file()
+    pdf = await file.download_to_drive(custom_path=dest_dir + 'src.pdf')
     result, num_pages = pdf2png(pdf, dest_dir)
     if result:
         deck.status, deck.slides_count = Deck.STATUS['PROCESSED'], num_pages
-        update.message.reply_text('Конвертация успешна...')
+        await update.message.reply_text('Конвертация успешна...')
         deck.save()
 
     if config('optipng', default=False):
-        update.message.reply_text('Оптимизируем изображения...')
-        update.message.reply_chat_action(action='upload_document')
+        await update.message.reply_text('Оптимизируем изображения...')
+        await update.message.reply_chat_action(action='upload_document')
         optimize_png(dest_dir, num_pages)
-        update.message.reply_text('Оптимизация завершена!')
+        await update.message.reply_text('Оптимизация завершена!')
 
     url, embed_code = generate_url(deck.id), generate_embed(deck.id)
     links = f'[Ссылка для просмотра презентации]({url})\n\nКод для вставки:\n```\n{embed_code}\n```'
     # print(links)
-    update.message.reply_text(links, parse_mode='MarkdownV2')
+    await update.message.reply_text(links, parse_mode='MarkdownV2')
 
 
 def main():
@@ -101,14 +101,11 @@ def main():
     logger = logging.getLogger(__name__)
     try:
         token = config('telegram_token', default='')
-        updater = Updater(token)
-        dp = updater.dispatcher
+        application  = Application.builder().token(token).build()
+        application.add_handler(CommandHandler('start', start))
+        application.add_handler(MessageHandler(filters.Document.FileExtension("pdf"), process_document))
 
-        dp.add_handler(CommandHandler('start', start))
-        dp.add_handler(MessageHandler(Filters.document, process_document))
-
-        updater.start_polling()
-        updater.idle()
+        application.run_polling()
     except Exception as e:
         print('Could not start a bot poller')
 
