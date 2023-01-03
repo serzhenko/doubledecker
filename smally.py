@@ -3,6 +3,7 @@ import sys
 import os
 import subprocess
 
+
 ### smally V0.50 by xinlin-z (https://github.com/xinlin-z/smally)
 
 def shcmd(cmd, shell=False):
@@ -29,14 +30,14 @@ def jpegtran(pathname):
         basename = os.path.basename(pathname)
         wd = os.path.dirname(os.path.abspath(pathname))
         # baseline
-        file_1 = wd + '/'+ basename + '.smally.jpg.baseline'
-        cmd_1 = 'jpegtran -copy none -optimize -outfile %s %s'\
-                                                        % (file_1, pathname)
+        file_1 = wd + '/' + basename + '.smally.jpg.baseline'
+        cmd_1 = 'jpegtran -copy none -optimize -outfile %s %s' \
+                % (file_1, pathname)
         shcmd(cmd_1)
         # progressive
         file_2 = wd + '/' + basename + 'smally.jpg.progressive'
-        cmd_2 = 'jpegtran -copy none -progressive -optimize -outfile %s %s'\
-                                                        % (file_2, pathname)
+        cmd_2 = 'jpegtran -copy none -progressive -optimize -outfile %s %s' \
+                % (file_2, pathname)
         shcmd(cmd_2)
         # get jpg type
         progressive = is_progressive(pathname)
@@ -49,8 +50,10 @@ def jpegtran(pathname):
             if size == size_2 and progressive is False:
                 select_file = 2  # progressive is preferred
         else:
-            if size_2 <= size_1: select_file = 2
-            else: select_file = 1
+            if size_2 <= size_1:
+                select_file = 2
+            else:
+                select_file = 1
         # get mtime
         _, mtime, _ = shcmd('stat -c "%y" ' + pathname)
         # rm & mv
@@ -68,28 +71,32 @@ def jpegtran(pathname):
             os.rename(file_1, pathname)
             saved = size - size_1
             _log += '-' + str(saved) \
-                        + ' -' + str(round(saved/size*100,2)) + '%' \
-                        + ' [b]'
+                    + ' -' + str(round(saved / size * 100, 2)) + '%' \
+                    + ' [b]'
         else:  # select_file == 2:  # progressive
             os.remove(pathname)
             os.remove(file_1)
             os.rename(file_2, pathname)
             saved = size - size_2
             _log += '-' + str(saved) \
-                        + ' -' + str(round(saved/size*100,2)) +'%' \
-                        + ' [p]'
+                    + ' -' + str(round(saved / size * 100, 2)) + '%' \
+                    + ' [p]'
         # keep mtime
         if select_file != 0:
-            shcmd('touch -m -d "'+mtime.decode()+'" '+pathname)
+            shcmd('touch -m -d "' + mtime.decode() + '" ' + pathname)
         # log and count
         print(_log)
     except BaseException:
         try:
             if os.path.exists(pathname):
-                try: os.remove(file_1)
-                except FileNotFoundError: pass
-                try: os.remove(file_2)
-                except FileNotFoundError: pass
+                try:
+                    os.remove(file_1)
+                except FileNotFoundError:
+                    pass
+                try:
+                    os.remove(file_2)
+                except FileNotFoundError:
+                    pass
             else:
                 if (os.path.exists(file_1) and
                         os.path.exists(file_2)):
@@ -101,7 +108,8 @@ def jpegtran(pathname):
                         os.rename(file_1, pathname)
                 elif os.path.exists(file_2):
                     os.rename(file_2, pathname)
-                else: os.rename(file_1, pathname)
+                else:
+                    os.rename(file_1, pathname)
         except UnboundLocalError:
             pass
         raise
@@ -112,7 +120,7 @@ def optipng(pathname):
         basename = os.path.basename(pathname)
         wd = os.path.dirname(os.path.abspath(pathname))
         out_file = wd + '/' + basename + '.smally.png'
-        cmd = 'optipng -fix -%s %s -out %s'%('-o7 -zm1-9',pathname,out_file)
+        cmd = 'optipng -fix -%s %s -out %s' % ('-o7 -zm1-9', pathname, out_file)
         shcmd(cmd)
         _log = pathname + ' '
         size_1 = os.path.getsize(pathname)
@@ -125,13 +133,13 @@ def optipng(pathname):
             sym = '-' if saved > 0 else '+'
             fixed = '' if saved > 0 else 'fixed'
             _log += sym + str(abs(saved)) \
-                        + ' ' + sym \
-                        + str(round(abs(saved)/size_1*100,2)) \
-                        + '%' + fixed
+                    + ' ' + sym \
+                    + str(round(abs(saved) / size_1 * 100, 2)) \
+                    + '%' + fixed
             _, mtime, _ = shcmd('stat -c "%y" ' + pathname)
             os.remove(pathname)
             os.rename(out_file, pathname)
-            shcmd('touch -m -d "'+mtime.decode()+'" '+pathname)
+            shcmd('touch -m -d "' + mtime.decode() + '" ' + pathname)
         print(_log)
     except BaseException:
         try:
@@ -149,7 +157,7 @@ def gifsicle(pathname):
         basename = os.path.basename(pathname)
         wd = os.path.dirname(os.path.abspath(pathname))
         out_file = wd + '/' + basename + '.smally.gif'
-        cmd = 'gifsicle -O3 --colors 256 %s -o %s'%(pathname, out_file)
+        cmd = 'gifsicle -O3 --colors 256 %s -o %s' % (pathname, out_file)
         shcmd(cmd)
         _log = pathname + ' '
         size_1 = os.path.getsize(pathname)
@@ -161,13 +169,13 @@ def gifsicle(pathname):
             saved = size_1 - size_2
             sym = '-' if saved > 0 else '+'
             _log += sym + str(abs(saved)) \
-                        + ' ' + sym \
-                        + str(round(abs(saved)/size_1*100,2))\
-                        + '%'
+                    + ' ' + sym \
+                    + str(round(abs(saved) / size_1 * 100, 2)) \
+                    + '%'
             _, mtime, _ = shcmd('stat -c "%y" ' + pathname)
             os.remove(pathname)
             os.rename(out_file, pathname)
-            shcmd('touch -m -d "'+mtime.decode()+'" '+pathname)
+            shcmd('touch -m -d "' + mtime.decode() + '" ' + pathname)
         print(_log)
     except BaseException:
         try:

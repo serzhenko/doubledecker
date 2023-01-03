@@ -101,7 +101,7 @@ def main():
     logger = logging.getLogger(__name__)
     try:
         token = config('telegram_token', default='')
-        application  = Application.builder().token(token).build()
+        application = Application.builder().token(token).build()
         application.add_handler(CommandHandler('start', start))
         application.add_handler(MessageHandler(filters.Document.FileExtension("pdf"), process_document))
 
