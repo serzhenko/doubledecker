@@ -96,7 +96,7 @@ async def process_document(update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     logging.basicConfig(
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.WARNING
     )
     logger = logging.getLogger(__name__)
     try:
